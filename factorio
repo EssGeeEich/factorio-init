@@ -76,17 +76,17 @@ case "$1" in
       echo "(if you store your binary some place else, override BINARY='/your/path' in the config)"
       exit 1
     fi
-  
+
     if [ -z ${FCONF} ]; then
       FCONF="${FACTORIO_PATH}/config/config.ini"
     fi
-  
+
     if ! [ -e "${SERVER_SETTINGS}" ]; then
       echo "Could not find factorio server settings file: ${SERVER_SETTINGS}"
       echo "Update your config and point SERVER_SETTINGS to a modified version of data/server-settings.example.json"
       exit 1
     fi
-  
+
     if ! [ -e ${FCONF} ]; then
       echo "Could not find factorio config file: ${FCONF}"
       echo "If this is the first time you run this script you need to generate the config.ini by starting the server manually."
@@ -107,26 +107,26 @@ case "$1" in
       WRITE_DIR=$(dirname "$(echo `grep "^write-data=" "$FCONF"` |cut -d'=' -f2 |sed -e 's#__PATH__executable__#'$(dirname "$BINARYB")/..'#g')")
     fi
     debug "write path: $WRITE_DIR"
-  
+
     PIDFILE="${WRITE_DIR}/server.pid"
-  
+
     if [ -z "${FIFO}" ];then
       FIFO="${WRITE_DIR}/server.fifo"
     fi
-  
+
     if [ -z "${CMDOUT}" ];then
       CMDOUT="${WRITE_DIR}/server.out"
     fi
-  
+
     if [ -z "${SAVELOG}" ]; then
       SAVELOG=0
     fi
-  
+
     # Finally, set up the invocation
     INVOCATION="${BINARY} --config ${FCONF} --port ${PORT} --start-server-load-latest --server-settings ${SERVER_SETTINGS} ${EXTRA_BINARGS}"
     ;;
 esac
-  
+
 usage(){
   echo "Usage: $0 COMMAND"
   echo
@@ -349,22 +349,6 @@ test_deps(){
 }
 
 install(){
-  # Factorio comes packaged in a directory named "factorio"
-  # Unless overriden in the config we will presume this is also the
-  # name used in FACTORIO_PATH
-  expected_path="`dirname ${FACTORIO_PATH}`/${PACKAGE_DIR_NAME}"
-  if ! [ "${FACTORIO_PATH}" == "${expected_path}" ]; then
-    echo "Aborting install! FACTORIO_PATH does not match expected path: ${expected_path}"
-    echo "See config option PACKAGE_DIR_NAME for more details"
-    exit 1
-  fi
-
-  # Prevent accidential overwrites
-  if [ -e "${expected_path}" ]; then
-    echo "Aborting install, ${FACTORIO_PATH} already exists"
-    exit 1
-  fi
-
   tarball=$1
   if ! [ -z "$tarball" ]; then
     if ! [ -f "${tarball}" ]; then
@@ -375,7 +359,7 @@ install(){
     downloadlatest=1
   fi
 
-  target="`dirname ${FACTORIO_PATH}`"
+  target="${FACTORIO_PATH}"
   if ! test -w "${target}"; then
     echo "Failed to write, aborting install!"
     echo "Install needs to be run as a user with write permissions to ${target}"
@@ -384,23 +368,23 @@ install(){
 
   if [ $downloadlatest ]; then
     LATEST_HEADLESS_URL_REDIRECT_FILENAME=$(curl ${LATEST_HEADLESS_URL} -s -L -I -o /dev/null -w '%{url_effective}')
-    if [[ $LATEST_HEADLESS_URL_REDIRECT_FILENAME == *"tar.xz"* ]]; then 
+    if [[ $LATEST_HEADLESS_URL_REDIRECT_FILENAME == *"tar.xz"* ]]; then
       TAR_OPTIONS="-xJv"
     else
       TAR_OPTIONS="-xzv"
     fi
-    if ! wget ${LATEST_HEADLESS_URL} -O - | tar ${TAR_OPTIONS} --directory "${target}"; then
+    if ! wget ${LATEST_HEADLESS_URL} -qO- | tar ${TAR_OPTIONS} factorio --strip-components=1 --directory "${target}"; then
       echo "Install failed!"
       exit 1
     fi
   else
     echo "Installing ${tarball} ..."
-    if [[ $tarball == *"tar.xz"* ]]; then 
+    if [[ $tarball == *"tar.xz"* ]]; then
       TAR_OPTIONS="-xJvf"
     else
       TAR_OPTIONS="-xzvf"
     fi
-    if ! tar ${TAR_OPTIONS} "${tarball}" --directory "${target}"; then
+    if ! tar ${TAR_OPTIONS} "${tarball}" factorio --strip-components=1 --directory "${target}"; then
       echo "Install failed!"
       exit 1
     fi
@@ -464,7 +448,7 @@ update(){
     exit 1
   fi
   trap "rm -rf ${tmpdir}" EXIT
-    
+
   invocation="python ${UPDATE_SCRIPT} --for-version ${version} --package ${package} --output-path ${tmpdir}"
   if [ ${UPDATE_EXPERIMENTAL} -gt 0 ]; then
     invocation="${invocation} --experimental"
@@ -532,7 +516,7 @@ update(){
       exit 1
     fi
   done
-  
+
   # Restarts the server if it was running
   if [ ${was_running} -eq 0 ]; then
     start_service
