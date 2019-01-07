@@ -20,14 +20,14 @@ USERNAME=factorio
 USERGROUP=factorio
 
 # The absolute path to the factorio directory
-FACTORIO_PATH=/opt/factorio
+FACTORIO_PATH=$(pwd)
 # Server settings file, see data/server-settings.example.json
 SERVER_SETTINGS=${FACTORIO_PATH}/data/server-settings.json
 
 # Port on which you want to run the server
-PORT=34197
+PORT="$(pwd | grep -Eo '[0-9]+$')"
 
-# Save the command/chat/log on server start? Default location /opt/factorio/server.out 
+# Save the command/chat/log on server start? Default location /opt/factorio/server.out
 # Setting this to 0 will cause the script to erase the log file on each start
 # If you set this to 1 you might want to apply logrotate on the log or it will eventually fill your disk
 SAVELOG=0
@@ -35,7 +35,7 @@ SAVELOG=0
 # Delay starting the game server until the we confirm the pingpong servers are reachable.
 # This makes sure that game server detects the correct external IP in a NAT setup.
 # Useful for Cloud providers where VMs may start faster than their Internet connectivity is plumbed.
-WAIT_PINGPONG=0
+WAIT_PINGPONG=1
 
 # Factorio comes packaged in a tarball containing the directory named "factorio"
 # when using this scripts update/install command we expect to see this very
@@ -44,7 +44,7 @@ WAIT_PINGPONG=0
 #
 # If you place your factorio install within a directory named "factorio" and you update/install
 # with the official tarball you can safely ignore this option.
-PACKAGE_DIR_NAME=factorio
+PACKAGE_DIR_NAME="$(basename $(pwd))"
 
 #
 # narcotiq made a sweet update script for factorio and by cloning into this
@@ -55,12 +55,12 @@ PACKAGE_DIR_NAME=factorio
 #
 
 # absolute path to the factorio-updater script
-UPDATE_SCRIPT=/path/to/update_factorio.py
+UPDATE_SCRIPT=/home/factorio/factorio-init/update_factorio.py
 # Note that if you set HEADLESS=1 the username/token will not be used as the headless
 # download is provided free of charge
 HEADLESS=1
-UPDATE_USERNAME=you
-UPDATE_TOKEN=yourtoken
+UPDATE_USERNAME=your_username_here
+UPDATE_TOKEN=your_token_here
 UPDATE_EXPERIMENTAL=0
 UPDATE_TMPDIR=/tmp
 
